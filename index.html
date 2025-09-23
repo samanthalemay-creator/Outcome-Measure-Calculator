@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outcome Measure Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+            background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%);
+            min-height: 100vh;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            padding: 32px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+        }
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+        .input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        .grid {
+            display: grid;
+            gap: 32px;
+        }
+        .grid-2 {
+            grid-template-columns: 1fr 1fr;
+        }
+        .grid-3 {
+            grid-template-columns: 2fr 1fr;
+        }
+        .results-card {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            padding: 24px;
+            border-radius: 12px;
+            border: 2px solid #10b981;
+        }
+        .info-card {
+            background: #f9fafb;
+            padding: 24px;
+            border-radius: 8px;
+        }
+        .alert {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            color: #92400e;
+            padding: 16px;
+            border-radius: 8px;
+        }
+        .question-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .question-item {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .question-label {
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        .score-display {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 16px;
+        }
+        .tab-button {
+            padding: 12px 24px;
+            border: 2px solid #d1d5db;
+            background: white;
+            color: #6b7280;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .tab-button.active {
+            border-color: #3b82f6;
+            background: #3b82f6;
+            color: white;
+            border-bottom: 2px solid #3b82f6;
+        }
+        .tab-content {
+            border: 2px solid #3b82f6;
+            border-radius: 0 8px 8px 8px;
+            padding: 24px;
+            background: white;
+        }
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+            .question-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px;">
+                <h1 style="font-size: 2rem; font-weight: bold; color: #1f2937; margin: 0;">
+                    📊 Outcome Measure Calculator
+                </h1>
+                <button id="resetBtn" class="btn btn-secondary">
+                    🔄 Reset
+                </button>
+            </div>
+
+            <div class="grid grid-3">
+                <div>
+                    <div>
+                        <label style="display: block; font-size: 1.125rem; font-weight: 600; color: #374151; margin-bottom: 12px;">
+                            Select Assessment Tool
+                        </label>
+                        <select id="assessmentSelect" class="input" style="font-size: 1.125rem;">
+                            <option value="">Choose an assessment...</option>
+                            <option value="UEFI">Upper Extremity Functional Index (UEFI)</option>
+                            <option value="SPADI">Shoulder Pain and Disability Index (SPADI)</option>
+                            <option value="LEFS">Lower Extremity Functional Scale (LEFS)</option>
+                            <option value="NDI">Neck Disability Index (NDI)</option>
+                            <option value="ODI">Revised Oswestry Disability Index (ODI)</option>
+                            <option value="Berg">Berg Balance Scale</option>
+                            <option value="TUG">Timed Up and Go (TUG)</option>
+                            <option value="HDI">Headache Disability Index (HDI)</option>
+                            <option value="AMPAC">AM-PAC 6 Clicks Short Form</option>
+                        </select>
+                    </div>
+
+                    <div id="assessmentInfo" style="display: none; background: #eff6ff; padding: 24px; border-radius: 8px; margin-top: 24px;">
+                        <h3 id="assessmentTitle" style="font-weight: 600; color: #1e40af; margin-bottom: 12px;"></h3>
+                        <div id="assessmentDetails" style="font-size: 0.875rem; color: #1e40af;"></div>
+                    </div>
+
+                    <div id="inputTabs" style="display: none; margin-top: 24px;">
+                        <div style="display: flex; gap: 4px;">
+                            <button id="questionsTab" class="tab-button active">Individual Questions</button>
+                            <button id="totalTab" class="tab-button">Enter Total Score</button>
+                        </div>
+                        
+                        <div id="questionsContent" class="tab-content">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                <h4 style="font-weight: 600; color: #374151; margin: 0;">Answer Each Question</h4>
+                                <button id="clearAllBtn" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.875rem;">Clear All</button>
+                            </div>
+                            <div id="questionsContainer"></div>
+                            <div id="runningTotal" class="score-display" style="display: none;">
+                                Total Score: <span id="totalScore">0</span>
+                            </div>
+                        </div>
+                        
+                        <div id="totalContent" class="tab-content" style="display: none;">
+                            <label id="scoreLabel" style="display: block; font-size: 1.125rem; font-weight: 600; color: #374151; margin-bottom: 12px;">
+                                Total Score
+                            </label>
+                            <input type="number" id="scoreField" class="input" style="font-size: 1.25rem; text-align: center; font-weight: 600;" step="0.1">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div id="results" style="display: none;" class="results-card">
+                        <h3 style="font-size: 1.25rem; font-weight: bold; color: #065f46; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                            📋 Results
+                        </h3>
+                        
+                        <div style="background: white; padding: 16px; border-radius: 8px; text-align: center; margin-bottom: 16px;">
+                            <div id="scoreDisplay" style="font-size: 2rem; font-weight: bold; color: #1f2937; margin-bottom: 8px;"></div>
+                            <div id="scoreType" style="font-size: 1rem; color: #6b7280;"></div>
+                        </div>
+                        
+                        <div style="background: white; padding: 16px; border-radius: 8px; text-align: center; margin-bottom: 16px;">
+                            <div id="disabilityLevel" style="font-size: 1.125rem; font-weight: 600; color: #1f2937;"></div>
+                        </div>
+                        
+                        <div id="riskLevel" style="display: none; background: white; padding: 16px; border-radius: 8px; text-align: center;">
+                            <div id="riskText" style="font-size: 1rem; font-weight: 500; color: #374151;"></div>
+                        </div>
+                    </div>
+
+                    <div id="validationError" style="display: none;" class="alert">
+                        <p id="errorText"></p>
+                    </div>
+
+                    <div class="info-card" style="margin-top: 16px;">
+                        <h3 style="font-weight: 600; color: #1f2937; margin-bottom: 12px;">Assessment Info</h3>
+                        <div id="assessmentRanges" style="font-size: 0.875rem; color: #4b5563;">
+                            <p>Select an assessment tool to see scoring ranges and interpretation guidelines.</p>
+                        </div>
+                        <p style="font-size: 0.75rem; color: #6b7280; margin-top: 16px;">
+                            * Interpretation may vary by specific assessment tool and clinical context
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 32px; padding: 16px; background: #eff6ff; border-radius: 8px;">
+                <p style="font-size: 0.875rem; color: #1e40af;">
+                    <strong>Note:</strong> This calculator is for educational and clinical reference purposes. 
+                    Always refer to the original assessment guidelines and consider clinical context when interpreting results.
+                    These tools should be used by qualified healthcare professionals.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const assessmentTools = {
+            'UEFI': {
+                name: 'Upper Extremity Functional Index',
+                maxScore: 80, minScore: 0, questions: 20,
+                questionScale: { min: 0, max: 4, labels: ['Extremely difficult/Unable', 'Quite a bit of difficulty', 'Moderate difficulty', 'A little bit of difficulty', 'No difficulty'] },
+                interpretation: (score) => {
+                    const percentage = ((80 - score) / 80) * 100;
+                    let level = '';
+                    if (percentage <= 10) level = 'Minimal disability';
+                    else if (percentage <= 30) level = 'Moderate disability';
+                    else if (percentage <= 50) level = 'Severe disability';
+                    else level = 'Complete disability';
+                    return { percentage: percentage.toFixed(1), level };
+                },
+                ranges: [
+                    '<strong>Minimal disability:</strong> 0-10%',
+                    '<strong>Moderate disability:</strong> 11-30%',
+                    '<strong>Severe disability:</strong> 31-50%',
+                    '<strong>Complete disability:</strong> >50%'
+                ]
+            },
+            'SPADI': {
+                name: 'Shoulder Pain and Disability Index',
+                maxScore: 130, minScore: 0, questions: 13,
+                questionScale: { min: 0, max: 10, labels: ['No difficulty/pain', '', '', '', '', 'Moderate difficulty/pain', '', '', '', '', 'So difficult it required help/Worst pain'] },
+                interpretation: (score) => {
+                    const percentage = (score / 130) * 100;
+                    let level = '';
+                    if (percentage <= 10) level = 'Minimal disability';
+                    else if (percentage <= 30) level = 'Moderate disability';
+                    else if (percentage <= 50) level = 'Severe disability';
+                    else level = 'Complete disability';
+                    return { percentage: percentage.toFixed(1), level };
+                },
+                ranges: [
+                    '<strong>Minimal disability:</strong> 0-10%',
+                    '<strong>Moderate disability:</strong> 11-30%',
+                    '<strong>Severe disability:</strong> 31-50%',
+                    '<strong>Complete disability:</strong> >50%'
+                ]
+            },
+            'LEFS': {
+                name: 'Lower Extremity Functional Scale',
+                maxScore: 80, minScore: 0, questions: 20,
+                questionScale: { min: 0, max: 4, labels: ['Extremely difficult/Unable', 'Quite a bit of difficulty', 'Moderate difficulty', 'A little bit of difficulty', 'No difficulty'] },
+                interpretation: (score) => {
+                    const percentage = ((80 - score) / 80) * 100;
+                    let level = '';
+                    if (percentage <= 10) level = 'Minimal disability';
+                    else if (percentage <= 30) level = 'Moderate disability';
+                    else if (percentage <= 50) level = 'Severe disability';
+                    else level = 'Complete disability';
+                    return { percentage: percentage.toFixed(1), level };
+                },
+                ranges: [
+                    '<strong>Minimal disability:</strong> 0-10%',
+                    '<strong>Moderate disability:</strong> 11-30%',
+                    '<strong>Severe disability:</strong> 31-50%',
+                    '<strong>Complete disability:</strong> >50%'
+                ]
+            },
+            'NDI': {
+                name: 'Neck Disability Index',
+                maxScore: 50, minScore: 0, questions: 10,
+                questionScale: { min: 0, max: 5, labels: ['No disability', 'Mild disability', 'Moderate disability', 'Severe disability', 'Complete disability', 'Maximum disability'] },
+                interpretation: (score) => {
+                    const percentage = (score / 50) * 100;
+                    let level = '';
+                    if (percentage <= 4) level = 'No disability';
+                    else if (percentage <= 14) level = 'Mild disability';
+                    else if (percentage <= 24) level = 'Moderate disability';
+                    else if (percentage <= 34) level = 'Severe disability';
+                    else level = 'Complete disability';
+                    return { percentage: percentage.toFixed(1), level };
+                },
+                ranges: [
+                    '<strong>No disability:</strong> 0-4%',
+                    '<strong>Mild disability:</strong> 5-14%',
+                    '<strong>Moderate disability:</strong> 15-24%',
+                    '<strong>Severe disability:</strong> 25-34%',
+                    '<strong>Complete disability:</strong> ≥35%'
+                ]
+            },
+            'ODI': {
+                name: 'Revised Oswestry Disability Index',
+                maxScore: 50, minScore: 0, questions: 10,
+                questionScale: { min: 0, max: 5, labels: ['No disability', 'Mild disability', 'Moderate disability', 'Severe disability', 'Complete disability', 'Maximum disability'] },
+                interpretation: (score) => {
+                    const percentage = (score / 50) * 100;
+                    let level = '';
+                    if (percentage <= 20) level = 'Minimal disability';
+                    else if (percentage <= 40) level = 'Moderate disability';
+                    else if (percentage <= 60) level = 'Severe disability';
+                    else if (percentage <= 80) level = 'Crippled';
+                    else level = 'Bed-bound/exaggerating';
+                    return { percentage: percentage.toFixed(1), level };
+                },
+                ranges: [
+                    '<strong>Minimal disability:</strong> 0-20%',
+                    '<strong>Moderate disability:</strong> 21-40%',
+                    '<strong>Severe disability:</strong> 41-60%',
+                    '<strong>Crippled:</strong> 61-80%',
+                    '<strong>Bed-bound:</strong> 81-100%'
+                ]
+            },
+            'Berg': {
+                name: 'Berg Balance Scale',
+                maxScore: 56, minScore: 0, questions: 14,
+                questionScale: { min: 0, max: 4, labels: ['Unable (0)', 'Severe impairment (1)', 'Moderate impairment (2)', 'Mild impairment (3)', 'Normal (4)'] },
+                interpretation: (score) => {
+                    let level = '';
+                    if (score >= 45) level = 'Low fall risk - Independent ambulation';
+                    else if (score >= 21) level = 'Medium fall risk - Assistance may be required';
+                    else level = 'High fall risk - Wheelchair user';
+                    const percentage = ((56 - score) / 56) * 100;
+                    return { percentage: percentage.toFixed(1), level };
+                },
+                ranges: [
+                    '<strong>Low fall risk:</strong> 45-56 points',
+                    '<strong>Medium fall risk:</strong> 21-44 points',
+                    '<strong>High fall risk:</strong> 0-20 points'
+                ]
+            },
+            'TUG': {
+                name: 'Timed Up and Go',
+                maxScore: 999, minScore: 0, questions: 1,
+                questionScale: { min: 0, max: 999, labels: ['Enter time in seconds'] },
+                interpretation: (score) => {
+                    let level = '';
+                    if (score <= 10) level = 'Normal mobility - Low fall risk';
+                    else if (score <= 20) level = 'Mild mobility impairment - Moderate fall risk';
+                    else if (score <= 30) level = 'Moderate mobility impairment - High fall risk';
+                    else level = 'Severe mobility impairment - Very high fall risk';
+                    let percentage = 0;
+                    if (score > 10) percentage = Math.min(((score - 10) / 20) * 100, 100);
+                    return { percentage: percentage.toFixed(1), level };
+                },
+                ranges: [
+                    '<strong>Normal mobility:</strong> ≤10 seconds',
+                    '<strong>Mild impairment:</strong> 11-20 seconds',
+                    '<strong>Moderate impairment:</strong> 21-30 seconds',
+                    '<strong>Severe impairment:</strong> >30 seconds'
+                ]
+            },
+            'HDI': {
+                name: 'Headache Disability Index',
+                maxScore: 100, minScore: 0, questions: 25,
+                questionScale: { min: 0, max: 4, labels: ['Never', 'Sometimes', 'Often', 'Very often', 'Always'] },
+                interpretation: (score) => {
+                    let level = '';
+                    if (score <= 30) level = 'Little or no disability';
+                    else if (score <= 50) level = 'Mild disability';
+                    else if (score <= 70) level = 'Moderate disability';
+                    else level = 'Severe disability';
+                    return { percentage: score.toFixed(1), level };
+                },
+                ranges: [
+                    '<strong>Little or no disability:</strong> 0-30 points',
+                    '<strong>Mild disability:</strong> 31-50 points',
+                    '<strong>Moderate disability:</strong> 51-70 points',
+                    '<strong>Severe disability:</strong> 71-100 points'
+                ]
+            },
+            'AMPAC': {
+                name: 'AM-PAC 6 Clicks Short Form',
+                maxScore: 24, minScore: 6, questions: 6,
+                questionScale: { min: 1, max: 4, labels: ['Unable (1)', 'A lot of help (2)', 'A little help (3)', 'No help needed (4)'] },
+                interpretation: (score) => {
+                    let level = '';
+                    let riskLevel = '';
+                    
+                    // AM-PAC Basic Mobility Inpatient Short Form Conversion Table
+                    const conversionTable = {
+                        6: { standardized: 29.5, cms: 15 },
+                        7: { standardized: 32.2, cms: 20 },
+                        8: { standardized: 34.2, cms: 24 },
+                        9: { standardized: 35.9, cms: 28 },
+                        10: { standardized: 37.4, cms: 31 },
+                        11: { standardized: 38.7, cms: 34 },
+                        12: { standardized: 39.9, cms: 37 },
+                        13: { standardized: 41.1, cms: 40 },
+                        14: { standardized: 42.2, cms: 43 },
+                        15: { standardized: 43.3, cms: 46 },
+                        16: { standardized: 44.4, cms: 49 },
+                        17: { standardized: 45.5, cms: 52 },
+                        18: { standardized: 46.7, cms: 56 },
+                        19: { standardized: 47.9, cms: 59 },
+                        20: { standardized: 49.2, cms: 63 },
+                        21: { standardized: 50.6, cms: 67 },
+                        22: { standardized: 52.2, cms: 72 },
+                        23: { standardized: 54.1, cms: 78 },
+                        24: { standardized: 56.4, cms: 85 }
+                    };
+                    
+                    const conversion = conversionTable[score] || { standardized: 0, cms: 0 };
+                    
+                    if (score > 20) {
+                        level = 'High functional mobility - Independent community mobility';
+                        riskLevel = 'Low risk for institutional discharge';
+                    } else if (score >= 17) {
+                        level = 'Moderate-high functional mobility - Minimal assistance';
+                        riskLevel = 'Low-moderate risk for institutional discharge';
+                    } else if (score >= 15) {
+                        level = 'Moderate functional mobility - Some assistance needed';
+                        riskLevel = 'Moderate risk for institutional discharge';
+                    } else {
+                        level = 'Low functional mobility - Significant assistance required';
+                        riskLevel = 'High risk for institutional discharge';
+                    }
+                    
+                    const functionalCapacity = ((score - 6) / 18) * 100;
+                    return { 
+                        percentage: functionalCapacity.toFixed(1), 
+                        level: level,
+                        riskLevel: riskLevel,
+                        rawScore: score,
+                        standardizedScore: conversion.standardized,
+                        cmsScore: conversion.cms
+                    };
+                },
+                ranges: [
+                    '<strong>Low risk (Home discharge):</strong> >20 points',
+                    '<strong>Low-moderate risk:</strong> 17-20 points',
+                    '<strong>Moderate risk:</strong> 15-16 points',
+                    '<strong>High risk (Institutional care):</strong> <15 points',
+                    '<div style="margin-top: 16px; padding: 12px; background: #f0f9ff; border-radius: 6px; border-left: 4px solid #3b82f6;">',
+                    '<p style="font-size: 0.875rem; color: #1e40af; margin: 0 0 8px 0; font-weight: 600;">Scoring Information:</p>',
+                    '<p style="font-size: 0.8rem; color: #1e40af; margin: 0 0 6px 0;">• Each item scored 1-4 (1=Unable, 4=No help needed)</p>',
+                    '<p style="font-size: 0.8rem; color: #1e40af; margin: 0 0 6px 0;">• Raw scores converted to Standardized T-scores</p>',
+                    '<p style="font-size: 0.8rem; color: #1e40af; margin: 0;">• CMS scores represent 0-100% functional capacity</p>',
+                    '</div>'
+                ]
+            }
+        };
+
+        let currentTool = null;
+        let currentTab = 'questions';
+
+        // Elements
+        const assessmentSelect = document.getElementById('assessmentSelect');
+        const assessmentInfo = document.getElementById('assessmentInfo');
+        const assessmentTitle = document.getElementById('assessmentTitle');
+        const assessmentDetails = document.getElementById('assessmentDetails');
+        const inputTabs = document.getElementById('inputTabs');
+        const questionsTab = document.getElementById('questionsTab');
+        const totalTab = document.getElementById('totalTab');
+        const questionsContent = document.getElementById('questionsContent');
+        const totalContent = document.getElementById('totalContent');
+        const questionsContainer = document.getElementById('questionsContainer');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        const runningTotal = document.getElementById('runningTotal');
+        const totalScore = document.getElementById('totalScore');
+        const scoreLabel = document.getElementById('scoreLabel');
+        const scoreField = document.getElementById('scoreField');
+        const results = document.getElementById('results');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const scoreType = document.getElementById('scoreType');
+        const disabilityLevel = document.getElementById('disabilityLevel');
+        const riskLevel = document.getElementById('riskLevel');
+        const riskText = document.getElementById('riskText');
+        const validationError = document.getElementById('validationError');
+        const errorText = document.getElementById('errorText');
+        const assessmentRanges = document.getElementById('assessmentRanges');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Event listeners
+        assessmentSelect.addEventListener('change', handleAssessmentChange);
+        questionsTab.addEventListener('click', () => switchTab('questions'));
+        totalTab.addEventListener('click', () => switchTab('total'));
+        clearAllBtn.addEventListener('click', clearAllQuestions);
+        scoreField.addEventListener('input', handleScoreChange);
+        resetBtn.addEventListener('click', resetCalculator);
+
+        function handleAssessmentChange() {
+            const selectedValue = assessmentSelect.value;
+            
+            if (!selectedValue) {
+                hideAllSections();
+                assessmentRanges.innerHTML = '<p>Select an assessment tool to see scoring ranges and interpretation guidelines.</p>';
+                return;
+            }
+
+            currentTool = assessmentTools[selectedValue];
+            showAssessmentInfo();
+            showInputTabs();
+            updateAssessmentRanges();
+            clearResults();
+            
+            if (currentTab === 'questions') {
+                createQuestionInputs();
+            } else {
+                showScoreInput();
+            }
+        }
+
+        function showAssessmentInfo() {
+            assessmentTitle.textContent = currentTool.name;
+            assessmentDetails.innerHTML = `
+                <p><strong>Questions/Items:</strong> ${currentTool.questions}</p>
+                <p><strong>Score Range:</strong> ${currentTool.minScore} - ${currentTool.maxScore}</p>
+            `;
+            assessmentInfo.style.display = 'block';
+        }
+
+        function showInputTabs() {
+            inputTabs.style.display = 'block';
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab buttons
+            questionsTab.classList.toggle('active', tab === 'questions');
+            totalTab.classList.toggle('active', tab === 'total');
+            
+            // Update tab content
+            questionsContent.style.display = tab === 'questions' ? 'block' : 'none';
+            totalContent.style.display = tab === 'total' ? 'block' : 'none';
+            
+            if (tab === 'questions') {
+                createQuestionInputs();
+            } else {
+                showScoreInput();
+            }
+            
+            clearResults();
+        }
+
+        function createQuestionInputs() {
+            questionsContainer.innerHTML = '';
+            
+            for (let i = 1; i <= currentTool.questions; i++) {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question-item';
+                
+                const label = document.createElement('label');
+                label.className = 'question-label';
+                label.htmlFor = `question${i}`;
+                label.textContent = `Question ${i}`;
+                
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.className = 'input';
+                input.id = `question${i}`;
+                input.addEventListener('input', calculateRunningTotal);
+                input.style.textAlign = 'center';
+                input.style.fontSize = '1.1rem';
+                input.style.fontWeight = '600';
+                
+                const scale = currentTool.questionScale;
+                
+                // Set input attributes based on assessment type
+                if (assessmentSelect.value === 'TUG') {
+                    input.min = 0;
+                    input.max = 999;
+                    input.step = 0.1;
+                    input.placeholder = 'Seconds';
+                } else {
+                    input.min = scale.min;
+                    input.max = scale.max;
+                    input.step = 1;
+                    input.placeholder = `${scale.min}-${scale.max}`;
+                }
+                
+                // Create scale reference
+                const scaleRef = document.createElement('div');
+                scaleRef.style.fontSize = '0.75rem';
+                scaleRef.style.color = '#6b7280';
+                scaleRef.style.marginTop = '4px';
+                scaleRef.style.lineHeight = '1.3';
+                
+                if (assessmentSelect.value === 'TUG') {
+                    scaleRef.textContent = 'Enter time in seconds';
+                } else if (assessmentSelect.value === 'SPADI') {
+                    scaleRef.innerHTML = `Scale: ${scale.min} = ${scale.labels[0]}, 5 = ${scale.labels[5]}, ${scale.max} = ${scale.labels[10]}`;
+                } else {
+                    scaleRef.innerHTML = `Scale: ${scale.min} = ${scale.labels[scale.min]}, ${scale.max} = ${scale.labels[scale.max]}`;
+                }
+                
+                questionDiv.appendChild(label);
+                questionDiv.appendChild(input);
+                questionDiv.appendChild(scaleRef);
+                questionsContainer.appendChild(questionDiv);
+            }
+            
+            runningTotal.style.display = 'block';
+            calculateRunningTotal();
+        }
+
+        function calculateRunningTotal() {
+            let total = 0;
+            let allAnswered = true;
+            
+            for (let i = 1; i <= currentTool.questions; i++) {
+                const input = document.getElementById(`question${i}`);
+                const value = parseFloat(input.value);
+                
+                if (isNaN(value) || input.value === '') {
+                    allAnswered = false;
+                } else {
+                    // Validate range
+                    const scale = currentTool.questionScale;
+                    if (assessmentSelect.value === 'TUG') {
+                        if (value >= 0 && value <= 999) {
+                            total += value;
+                        } else {
+                            allAnswered = false;
+                        }
+                    } else {
+                        if (value >= scale.min && value <= scale.max) {
+                            total += value;
+                        } else {
+                            allAnswered = false;
+                        }
+                    }
+                }
+            }
+            
+            totalScore.textContent = total.toFixed(1);
+            
+            if (allAnswered && total >= currentTool.minScore && total <= currentTool.maxScore) {
+                calculateAndShowResults(total);
+                hideValidationError();
+            } else {
+                clearResults();
+                if (!allAnswered && questionsContainer.querySelectorAll('input[value!=""]').length > 0) {
+                    // Show validation message if some fields are filled but not all are valid
+                    const scale = currentTool.questionScale;
+                    const rangeText = assessmentSelect.value === 'TUG' ? '0-999 seconds' : `${scale.min}-${scale.max}`;
+                    showValidationError(`Please ensure all questions are answered with values in the valid range (${rangeText}).`);
+                } else {
+                    hideValidationError();
+                }
+            }
+        }
+
+        function clearAllQuestions() {
+            for (let i = 1; i <= currentTool.questions; i++) {
+                const input = document.getElementById(`question${i}`);
+                if (input) input.value = '';
+            }
+            calculateRunningTotal();
+        }
+
+        function showScoreInput() {
+            const isTUG = assessmentSelect.value === 'TUG';
+            scoreLabel.textContent = isTUG ? 'Time (seconds)' : 'Total Score';
+            scoreField.placeholder = `Enter ${isTUG ? 'time' : 'score'} (${currentTool.minScore}-${currentTool.maxScore})`;
+            scoreField.min = currentTool.minScore;
+            scoreField.max = currentTool.maxScore;
+            scoreField.value = '';
+        }
+
+        function updateAssessmentRanges() {
+            assessmentRanges.innerHTML = currentTool.ranges.join('<br>');
+        }
+
+        function handleScoreChange() {
+            const value = parseFloat(scoreField.value);
+            
+            if (isNaN(value)) {
+                clearResults();
+                return;
+            }
+
+            if (value < currentTool.minScore || value > currentTool.maxScore) {
+                showValidationError(`Please enter a valid ${assessmentSelect.value === 'TUG' ? 'time' : 'score'} between ${currentTool.minScore} and ${currentTool.maxScore}.`);
+                clearResults();
+                return;
+            }
+
+            hideValidationError();
+            calculateAndShowResults(value);
+        }
+
+        function calculateAndShowResults(score) {
+            const result = currentTool.interpretation(score);
+            
+            // Display score
+            if (assessmentSelect.value === 'AMPAC') {
+                scoreDisplay.textContent = result.rawScore;
+                scoreType.textContent = 'Raw Score';
+            } else {
+                scoreDisplay.textContent = result.percentage + '%';
+                const scoreTypeText = assessmentSelect.value === 'TUG' ? 'Mobility Impairment' :
+                                    assessmentSelect.value === 'Berg' ? 'Fall Risk Level' :
+                                    assessmentSelect.value === 'HDI' ? 'Disability Score' :
+                                    'Impairment Level';
+                scoreType.textContent = scoreTypeText;
+            }
+
+            // Display level
+            disabilityLevel.textContent = result.level;
+
+            // Display risk level and additional scores for AMPAC
+            if (assessmentSelect.value === 'AMPAC') {
+                // Update the risk level section to include additional scores
+                riskText.innerHTML = `
+                    <div style="margin-bottom: 8px;"><strong>Discharge Risk:</strong> ${result.riskLevel}</div>
+                    <div style="margin-bottom: 8px;"><strong>Standardized Score:</strong> ${result.standardizedScore}</div>
+                    <div><strong>CMS Score:</strong> ${result.cmsScore}%</div>
+                `;
+                riskLevel.style.display = 'block';
+            } else if (result.riskLevel) {
+                riskText.textContent = result.riskLevel;
+                riskLevel.style.display = 'block';
+            } else {
+                riskLevel.style.display = 'none';
+            }
+
+            results.style.display = 'block';
+        }
+
+        function showValidationError(message) {
+            errorText.textContent = message;
+            validationError.style.display = 'block';
+        }
+
+        function hideValidationError() {
+            validationError.style.display = 'none';
+        }
+
+        function clearResults() {
+            results.style.display = 'none';
+            hideValidationError();
+        }
+
+        function hideAllSections() {
+            assessmentInfo.style.display = 'none';
+            inputTabs.style.display = 'none';
+            clearResults();
+            currentTool = null;
+        }
+
+        function resetCalculator() {
+            assessmentSelect.value = '';
+            scoreField.value = '';
+            hideAllSections();
+            assessmentRanges.innerHTML = '<p>Select an assessment tool to see scoring ranges and interpretation guidelines.</p>';
+            currentTab = 'questions';
+            questionsTab.classList.add('active');
+            totalTab.classList.remove('active');
+        }
+    </script>
+</body>
+</html>
